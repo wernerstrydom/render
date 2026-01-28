@@ -1,0 +1,53 @@
+package server
+
+import (
+	"context"
+)
+
+// {{ .name | pascalCase }}Server implements the {{ .name | pascalCase }}Service.
+type {{ .name | pascalCase }}Server struct {
+	// TODO: Add dependencies (database, cache, etc.)
+}
+
+// New{{ .name | pascalCase }}Server creates a new {{ .name | pascalCase }}Server.
+func New{{ .name | pascalCase }}Server() *{{ .name | pascalCase }}Server {
+	return &{{ .name | pascalCase }}Server{}
+}
+{{ range .entities }}
+// Get{{ .name }} retrieves a {{ .name }} by ID.
+func (s *{{ $.name | pascalCase }}Server) Get{{ .name }}(ctx context.Context, id string) (*{{ .name }}, error) {
+	// TODO: Implement Get{{ .name }}
+	return nil, nil
+}
+
+// List{{ .name }}s returns a paginated list of {{ .name }}s.
+func (s *{{ $.name | pascalCase }}Server) List{{ .name }}s(ctx context.Context, pageSize int32, pageToken string) ([]*{{ .name }}, string, error) {
+	// TODO: Implement List{{ .name }}s
+	return nil, "", nil
+}
+
+// Create{{ .name }} creates a new {{ .name }}.
+func (s *{{ $.name | pascalCase }}Server) Create{{ .name }}(ctx context.Context, entity *{{ .name }}) (*{{ .name }}, error) {
+	// TODO: Implement Create{{ .name }}
+	return nil, nil
+}
+
+// Update{{ .name }} updates an existing {{ .name }}.
+func (s *{{ $.name | pascalCase }}Server) Update{{ .name }}(ctx context.Context, entity *{{ .name }}) (*{{ .name }}, error) {
+	// TODO: Implement Update{{ .name }}
+	return nil, nil
+}
+
+// Delete{{ .name }} deletes a {{ .name }} by ID.
+func (s *{{ $.name | pascalCase }}Server) Delete{{ .name }}(ctx context.Context, id string) error {
+	// TODO: Implement Delete{{ .name }}
+	return nil
+}
+
+// {{ .name }} represents a {{ .name }} entity.
+type {{ .name }} struct {
+{{- range .fields }}
+	{{ .name | pascalCase }} {{ if eq .type "double" }}float64{{ else }}{{ .type }}{{ end }}
+{{- end }}
+}
+{{ end }}

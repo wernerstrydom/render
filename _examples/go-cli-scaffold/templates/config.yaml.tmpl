@@ -1,0 +1,7 @@
+# {{ .name }} configuration file
+# Place this file at ~/.{{ .name }}.yaml or specify with --config flag
+{{ range .config }}
+# {{ .description }}
+{{ if .env }}# Environment variable: {{ .env }}{{ end }}
+{{ .name }}: {{ if eq .type "string" }}"{{ .default }}"{{ else }}{{ .default }}{{ end }}
+{{ end }}

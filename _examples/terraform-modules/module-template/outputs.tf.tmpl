@@ -1,0 +1,7 @@
+# Outputs for {{ .name }} module
+{{ range .outputs }}
+output "{{ .name }}" {
+  description = "{{ .name | title | replace "_" " " }}"
+  value       = {{ .value }}
+}
+{{ end }}

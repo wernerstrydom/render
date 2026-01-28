@@ -1,0 +1,129 @@
+# {{ .name }} module
+# {{ .description }}
+
+terraform {
+  required_version = "{{ $.terraformVersion }}"
+
+  required_providers {
+    {{ $.provider }} = {
+      source  = "hashicorp/{{ $.provider }}"
+      version = "{{ $.providerVersion }}"
+    }
+  }
+}
+{{ if eq .name "vpc" }}
+resource "aws_vpc" "main" {
+  cidr_block           = var.cidr_block
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  tags = {
+    Name        = "${var.project}-vpc"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
+resource "aws_subnet" "private" {
+  count             = length(var.availability_zones)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(var.cidr_block, 4, count.index)
+  availability_zone = var.availability_zones[count.index]
+
+  tags = {
+    Name        = "${var.project}-private-${count.index}"
+    Environment = var.environment
+    Type        = "private"
+  }
+}
+
+resource "aws_subnet" "public" {
+  count                   = length(var.availability_zones)
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = cidrsubnet(var.cidr_block, 4, count.index + length(var.availability_zones))
+  availability_zone       = var.availability_zones[count.index]
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name        = "${var.project}-public-${count.index}"
+    Environment = var.environment
+    Type        = "public"
+  }
+}
+{{ else if eq .name "eks" }}
+resource "aws_eks_cluster" "main" {
+  name     = var.cluster_name
+  role_arn = aws_iam_role.cluster.arn
+
+  vpc_config {
+    subnet_ids              = var.subnet_ids
+    endpoint_private_access = true
+    endpoint_public_access  = true
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.cluster_policy
+  ]
+
+  tags = {
+    Name        = var.cluster_name
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
+resource "aws_eks_node_group" "main" {
+  cluster_name    = aws_eks_cluster.main.name
+  node_group_name = "${var.cluster_name}-nodes"
+  node_role_arn   = aws_iam_role.node.arn
+  subnet_ids      = var.subnet_ids
+
+  instance_types = [var.node_instance_type]
+
+  scaling_config {
+    desired_size = var.node_desired_count
+    max_size     = var.node_desired_count * 2
+    min_size     = 1
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.node_policy
+  ]
+}
+{{ else if eq .name "rds" }}
+resource "aws_db_instance" "main" {
+  identifier     = var.identifier
+  engine         = "postgres"
+  engine_version = var.engine_version
+  instance_class = var.instance_class
+
+  allocated_storage     = var.allocated_storage
+  max_allocated_storage = var.allocated_storage * 2
+  storage_type          = "gp3"
+  storage_encrypted     = true
+
+  db_name  = replace(var.identifier, "-", "_")
+  username = "admin"
+  password = random_password.db.result
+
+  vpc_security_group_ids = [aws_security_group.db.id]
+  db_subnet_group_name   = aws_db_subnet_group.main.name
+
+  backup_retention_period = var.environment == "prod" ? 30 : 7
+  multi_az               = var.environment == "prod"
+  deletion_protection    = var.environment == "prod"
+
+  skip_final_snapshot = var.environment != "prod"
+
+  tags = {
+    Name        = var.identifier
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
+resource "random_password" "db" {
+  length  = 32
+  special = false
+}
+{{ end }}

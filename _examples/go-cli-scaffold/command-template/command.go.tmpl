@@ -1,0 +1,50 @@
+package cmd
+
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+)
+
+var {{ .name }}Cmd = &cobra.Command{
+	Use:   "{{ .name }}{{ range .args }} <{{ .name }}>{{ end }}",
+	Short: "{{ .short }}",
+	Long:  `{{ .long }}`,
+{{- if .args }}
+	Args:  cobra.ExactArgs({{ len .args }}),
+{{- end }}
+	RunE: func(cmd *cobra.Command, args []string) error {
+{{- range $i, $arg := .args }}
+		{{ $arg.name }} := args[{{ $i }}]
+		_ = {{ $arg.name }} // TODO: use {{ $arg.name }}
+{{- end }}
+
+		// TODO: Implement {{ .name }} command
+		fmt.Println("{{ .name }} called")
+		return nil
+	},
+}
+
+func init() {
+{{- range .flags }}
+{{- if .short }}
+	{{ $.name }}Cmd.Flags().{{ .type | title }}P("{{ .name }}", "{{ .short }}", {{ if eq .type "bool" }}{{ .default }}{{ else if eq .type "string" }}"{{ .default }}"{{ else }}{{ .default }}{{ end }}, "{{ .description }}")
+{{- else }}
+	{{ $.name }}Cmd.Flags().{{ .type | title }}("{{ .name }}", {{ if eq .type "bool" }}{{ .default }}{{ else if eq .type "string" }}"{{ .default }}"{{ else }}{{ .default }}{{ end }}, "{{ .description }}")
+{{- end }}
+{{- if .required }}
+	{{ $.name }}Cmd.MarkFlagRequired("{{ .name }}")
+{{- end }}
+{{- end }}
+{{ range .subcommands }}
+	{{ $.name }}Cmd.AddCommand(&cobra.Command{
+		Use:   "{{ .name }}",
+		Short: "{{ .short }}",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// TODO: Implement {{ $.name }} {{ .name }}
+			fmt.Println("{{ $.name }} {{ .name }} called")
+			return nil
+		},
+	})
+{{- end }}
+}

@@ -1,0 +1,20 @@
+# Variables for {{ .name }} module
+
+variable "project" {
+  description = "Project name"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment name (dev, staging, prod)"
+  type        = string
+}
+{{ range .variables }}
+variable "{{ .name }}" {
+  description = "{{ .name | title | replace "_" " " }}"
+  type        = {{ .type }}
+{{- if .default }}
+  default     = {{ .default }}
+{{- end }}
+}
+{{ end }}

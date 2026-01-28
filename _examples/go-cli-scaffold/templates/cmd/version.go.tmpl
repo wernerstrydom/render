@@ -1,0 +1,62 @@
+package cmd
+
+import (
+	"encoding/json"
+	"fmt"
+	"runtime"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+)
+
+var (
+	version   = "dev"
+	commit    = "unknown"
+	buildTime = "unknown"
+)
+
+// SetVersionInfo sets the version information from build flags
+func SetVersionInfo(v, c, bt string) {
+	version = v
+	commit = c
+	buildTime = bt
+}
+
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print version information",
+	Long:  `Print version, commit hash, and build time information.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		info := struct {
+			Version   string `json:"version"`
+			Commit    string `json:"commit"`
+			BuildTime string `json:"buildTime"`
+			GoVersion string `json:"goVersion"`
+			OS        string `json:"os"`
+			Arch      string `json:"arch"`
+		}{
+			Version:   version,
+			Commit:    commit,
+			BuildTime: buildTime,
+			GoVersion: runtime.Version(),
+			OS:        runtime.GOOS,
+			Arch:      runtime.GOARCH,
+		}
+
+		switch viper.GetString("output") {
+		case "json":
+			data, _ := json.MarshalIndent(info, "", "  ")
+			fmt.Println(string(data))
+		default:
+			fmt.Printf("{{ .name }} version %s\n", info.Version)
+			fmt.Printf("  commit:     %s\n", info.Commit)
+			fmt.Printf("  built:      %s\n", info.BuildTime)
+			fmt.Printf("  go version: %s\n", info.GoVersion)
+			fmt.Printf("  os/arch:    %s/%s\n", info.OS, info.Arch)
+		}
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(versionCmd)
+}

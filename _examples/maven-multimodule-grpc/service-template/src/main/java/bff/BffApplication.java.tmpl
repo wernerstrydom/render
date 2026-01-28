@@ -1,0 +1,61 @@
+package {{ .package }}.bff;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Backend-for-Frontend application for {{ .name | pascalCase }} service.
+ * Provides REST API endpoints that communicate with the gRPC service.
+ */
+@SpringBootApplication
+@RestController
+@RequestMapping("/api/{{ .name }}")
+public class {{ .name | pascalCase }}BffApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run({{ .name | pascalCase }}BffApplication.class, args);
+    }
+
+    @GetMapping("/health")
+    public Map<String, String> health() {
+        return Map.of("status", "healthy", "service", "{{ .name }}");
+    }
+{{ range .entities }}
+    @GetMapping("/{{ .name | lower }}s")
+    public List<Map<String, Object>> list{{ .name }}s(
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) String pageToken) {
+        // TODO: Call gRPC service
+        return List.of();
+    }
+
+    @GetMapping("/{{ .name | lower }}s/{id}")
+    public Map<String, Object> get{{ .name }}(@PathVariable String id) {
+        // TODO: Call gRPC service
+        return Map.of("id", id);
+    }
+
+    @PostMapping("/{{ .name | lower }}s")
+    public Map<String, Object> create{{ .name }}(@RequestBody Map<String, Object> body) {
+        // TODO: Call gRPC service
+        return body;
+    }
+
+    @PutMapping("/{{ .name | lower }}s/{id}")
+    public Map<String, Object> update{{ .name }}(
+            @PathVariable String id,
+            @RequestBody Map<String, Object> body) {
+        // TODO: Call gRPC service
+        body.put("id", id);
+        return body;
+    }
+
+    @DeleteMapping("/{{ .name | lower }}s/{id}")
+    public void delete{{ .name }}(@PathVariable String id) {
+        // TODO: Call gRPC service
+    }
+{{ end }}
+}

@@ -1,0 +1,21 @@
+package {{ .package }}
+
+import (
+	"context"
+	"io"
+)
+
+// Driver is the interface that must be implemented by storage drivers.
+type Driver interface {
+{{- range .methods }}
+	// {{ .name }} {{ .description | lower }}.
+	{{ .name }}({{ range $i, $arg := .args }}{{ if $i }}, {{ end }}{{ $arg.name }} {{ $arg.type }}{{ end }}) ({{ range $i, $ret := .returns }}{{ if $i }}, {{ end }}{{ $ret.type }}{{ end }})
+{{- end }}
+}
+
+// DriverConnector is implemented by drivers that can open connections.
+type DriverConnector interface {
+	// Open opens a connection using the provided configuration.
+	// The config type depends on the driver implementation.
+	Open(config any) (Driver, error)
+}

@@ -1,0 +1,75 @@
+package cmd
+
+import (
+	"fmt"
+	"os"
+	"strings"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+)
+
+var cfgFile string
+
+// rootCmd represents the base command when called without any subcommands
+var rootCmd = &cobra.Command{
+	Use:   "{{ .name }}",
+	Short: "{{ .description }}",
+	Long: `{{ .description }}
+
+Complete documentation is available at https://github.com/example/{{ .name }}`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		return initConfig()
+	},
+}
+
+// Execute adds all child commands to the root command and sets flags appropriately.
+func Execute() error {
+	return rootCmd.Execute()
+}
+
+func init() {
+	// Global flags
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.{{ .name }}.yaml)")
+{{- range .config }}
+{{- if ne .name "config" }}
+	rootCmd.PersistentFlags().{{ .type | title }}("{{ .name }}", {{ if eq .type "bool" }}{{ .default }}{{ else if eq .type "string" }}"{{ .default }}"{{ else }}{{ .default }}{{ end }}, "{{ .description }}")
+	viper.BindPFlag("{{ .name }}", rootCmd.PersistentFlags().Lookup("{{ .name }}"))
+{{- end }}
+{{- end }}
+
+	// Add subcommands
+{{- range .commands }}
+	rootCmd.AddCommand({{ .name }}Cmd)
+{{- end }}
+}
+
+func initConfig() error {
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return err
+		}
+
+		viper.AddConfigPath(home)
+		viper.AddConfigPath(".")
+		viper.SetConfigType("yaml")
+		viper.SetConfigName(".{{ .name }}")
+	}
+
+	// Environment variables
+	viper.SetEnvPrefix("{{ .name | upper }}")
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
+	viper.AutomaticEnv()
+
+	// Read config file
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return fmt.Errorf("error reading config: %w", err)
+		}
+	}
+
+	return nil
+}

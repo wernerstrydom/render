@@ -1,0 +1,49 @@
+name: myservice
+language: go
+goVersion: "1.22"
+nodeVersion: "20"
+
+# Repository settings
+defaultBranch: main
+protectedBranches:
+  - main
+  - release/*
+
+# Build settings
+buildCommand: make build
+testCommand: make test
+lintCommand: make lint
+
+# Docker settings
+docker:
+  enabled: true
+  registry: ghcr.io
+  imageName: myorg/myservice
+  platforms:
+    - linux/amd64
+    - linux/arm64
+  dockerfile: Dockerfile
+
+# Feature flags
+features:
+  caching: true
+  dependabot: true
+  codeql: true
+  releaseAutomation: true
+
+# Deployment
+deploy:
+  enabled: true
+  environments:
+    - name: staging
+      url: https://staging.example.com
+      requiresApproval: false
+    - name: production
+      url: https://example.com
+      requiresApproval: true
+
+# Notifications
+notifications:
+  slack:
+    enabled: true
+    channel: "#deployments"

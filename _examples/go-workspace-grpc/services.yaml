@@ -1,0 +1,45 @@
+- name: user
+  port: 50051
+  httpPort: 8081
+  description: User management and authentication service
+  entities:
+    - name: User
+      fields:
+        - name: id
+          type: string
+        - name: email
+          type: string
+        - name: name
+          type: string
+
+- name: order
+  port: 50052
+  httpPort: 8082
+  description: Order processing and management service
+  entities:
+    - name: Order
+      fields:
+        - name: id
+          type: string
+        - name: userId
+          type: string
+        - name: total
+          type: double
+        - name: status
+          type: string
+
+- name: payment
+  port: 50053
+  httpPort: 8083
+  description: Payment processing service
+  entities:
+    - name: Payment
+      fields:
+        - name: id
+          type: string
+        - name: orderId
+          type: string
+        - name: amount
+          type: double
+        - name: method
+          type: string

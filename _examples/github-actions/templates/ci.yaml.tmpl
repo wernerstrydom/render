@@ -1,0 +1,156 @@
+name: CI
+
+on:
+  push:
+    branches: [{{ .defaultBranch }}]
+  pull_request:
+    branches: [{{ .defaultBranch }}]
+
+permissions:
+  contents: read
+  pull-requests: write
+{{ if .features.codeql }}  security-events: write{{ end }}
+
+concurrency:
+  group: ${{ "{{" }} github.workflow {{ "}}" }}-${{ "{{" }} github.ref {{ "}}" }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+{{ if eq .language "go" }}
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "{{ .goVersion }}"
+{{ if .features.caching }}          cache: true{{ end }}
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+{{ else if eq .language "node" }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "{{ .nodeVersion }}"
+{{ if .features.caching }}          cache: npm{{ end }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+{{ end }}
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+{{ if eq .language "go" }}
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "{{ .goVersion }}"
+{{ if .features.caching }}          cache: true{{ end }}
+
+      - name: Run tests
+        run: {{ .testCommand }}
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.out
+{{ else if eq .language "node" }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "{{ .nodeVersion }}"
+{{ if .features.caching }}          cache: npm{{ end }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test -- --coverage
+{{ end }}
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - uses: actions/checkout@v4
+
+{{ if eq .language "go" }}
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "{{ .goVersion }}"
+{{ if .features.caching }}          cache: true{{ end }}
+
+      - name: Build
+        run: {{ .buildCommand }}
+{{ end }}
+{{ if .docker.enabled }}
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: {{ .docker.registry }}
+          username: ${{ "{{" }} github.actor {{ "}}" }}
+          password: ${{ "{{" }} secrets.GITHUB_TOKEN {{ "}}" }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: {{ .docker.dockerfile }}
+          platforms: {{ .docker.platforms | join "," }}
+          push: true
+          tags: |
+            {{ .docker.registry }}/{{ .docker.imageName }}:${{ "{{" }} github.sha {{ "}}" }}
+            {{ .docker.registry }}/{{ .docker.imageName }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+{{ end }}
+{{ if .features.codeql }}
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: {{ .language }}
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+{{ end }}
