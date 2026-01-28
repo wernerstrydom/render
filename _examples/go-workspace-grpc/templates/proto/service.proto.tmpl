@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package {{ .name }};
+
+option go_package = "github.com/example/{{ .name }}-service/gen/{{ .name }}pb";
+
+// {{ .description }}
+service {{ .name | pascalCase }}Service {
+{{- range .entities }}
+  rpc Get{{ .name }}(Get{{ .name }}Request) returns ({{ .name }}) {}
+  rpc List{{ .name }}s(List{{ .name }}sRequest) returns (List{{ .name }}sResponse) {}
+  rpc Create{{ .name }}(Create{{ .name }}Request) returns ({{ .name }}) {}
+  rpc Update{{ .name }}(Update{{ .name }}Request) returns ({{ .name }}) {}
+  rpc Delete{{ .name }}(Delete{{ .name }}Request) returns (Delete{{ .name }}Response) {}
+{{- end }}
+}
+{{ range .entities }}
+message {{ .name }} {
+{{- range $i, $f := .fields }}
+  {{ $f.type }} {{ $f.name }} = {{ add $i 1 }};
+{{- end }}
+}
+
+message Get{{ .name }}Request {
+  string id = 1;
+}
+
+message List{{ .name }}sRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message List{{ .name }}sResponse {
+  repeated {{ .name }} {{ .name | lower }}s = 1;
+  string next_page_token = 2;
+}
+
+message Create{{ .name }}Request {
+  {{ .name }} {{ .name | lower }} = 1;
+}
+
+message Update{{ .name }}Request {
+  {{ .name }} {{ .name | lower }} = 1;
+}
+
+message Delete{{ .name }}Request {
+  string id = 1;
+}
+
+message Delete{{ .name }}Response {}
+{{ end }}

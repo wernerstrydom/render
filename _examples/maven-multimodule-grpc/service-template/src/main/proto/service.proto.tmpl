@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package {{ .name }};
+
+option java_multiple_files = true;
+option java_package = "{{ .package }}.proto";
+option java_outer_classname = "{{ .name | pascalCase }}Proto";
+
+// {{ .description }}
+service {{ .name | pascalCase }}Service {
+{{- range .entities }}
+  rpc Get{{ .name }}(Get{{ .name }}Request) returns ({{ .name }}Response) {}
+  rpc List{{ .name }}s(List{{ .name }}sRequest) returns (List{{ .name }}sResponse) {}
+  rpc Create{{ .name }}(Create{{ .name }}Request) returns ({{ .name }}Response) {}
+  rpc Update{{ .name }}(Update{{ .name }}Request) returns ({{ .name }}Response) {}
+  rpc Delete{{ .name }}(Delete{{ .name }}Request) returns (Empty) {}
+{{- end }}
+}
+
+message Empty {}
+{{ range .entities }}
+message {{ .name }}Response {
+{{- range $i, $f := .fields }}
+  {{ if eq $f.type "BigDecimal" }}string{{ else if eq $f.type "Integer" }}int32{{ else if hasPrefix $f.type "List" }}repeated string{{ else }}string{{ end }} {{ $f.name | snakeCase }} = {{ add $i 1 }};
+{{- end }}
+}
+
+message Get{{ .name }}Request {
+  string id = 1;
+}
+
+message List{{ .name }}sRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message List{{ .name }}sResponse {
+  repeated {{ .name }}Response {{ .name | snakeCase }}s = 1;
+  string next_page_token = 2;
+}
+
+message Create{{ .name }}Request {
+{{- range $i, $f := .fields }}
+{{- if ne $f.name "id" }}
+  {{ if eq $f.type "BigDecimal" }}string{{ else if eq $f.type "Integer" }}int32{{ else if hasPrefix $f.type "List" }}repeated string{{ else }}string{{ end }} {{ $f.name | snakeCase }} = {{ add $i 1 }};
+{{- end }}
+{{- end }}
+}
+
+message Update{{ .name }}Request {
+{{- range $i, $f := .fields }}
+  {{ if eq $f.type "BigDecimal" }}string{{ else if eq $f.type "Integer" }}int32{{ else if hasPrefix $f.type "List" }}repeated string{{ else }}string{{ end }} {{ $f.name | snakeCase }} = {{ add $i 1 }};
+{{- end }}
+}
+
+message Delete{{ .name }}Request {
+  string id = 1;
+}
+{{ end }}

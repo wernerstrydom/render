@@ -1,0 +1,54 @@
+package {{ .package }}.server;
+
+import io.grpc.stub.StreamObserver;
+import org.springframework.stereotype.Service;
+
+/**
+ * gRPC server implementation for {{ .name | pascalCase }}Service.
+ * {{ .description }}
+ */
+@Service
+public class {{ .name | pascalCase }}Server {
+
+    private final int port = {{ .port }};
+
+    public int getPort() {
+        return port;
+    }
+{{ range .entities }}
+    /**
+     * Retrieves a {{ .name }} by ID.
+     */
+    public void get{{ .name }}(String id) {
+        // TODO: Implement get{{ .name }}
+    }
+
+    /**
+     * Lists all {{ .name }}s with pagination.
+     */
+    public void list{{ .name }}s(int pageSize, String pageToken) {
+        // TODO: Implement list{{ .name }}s
+    }
+
+    /**
+     * Creates a new {{ .name }}.
+     */
+    public void create{{ .name }}() {
+        // TODO: Implement create{{ .name }}
+    }
+
+    /**
+     * Updates an existing {{ .name }}.
+     */
+    public void update{{ .name }}(String id) {
+        // TODO: Implement update{{ .name }}
+    }
+
+    /**
+     * Deletes a {{ .name }} by ID.
+     */
+    public void delete{{ .name }}(String id) {
+        // TODO: Implement delete{{ .name }}
+    }
+{{ end }}
+}

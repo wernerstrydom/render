@@ -1,0 +1,41 @@
+package client
+
+import (
+	"context"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+)
+
+// {{ .name | pascalCase }}Client provides a client for the {{ .name | pascalCase }}Service.
+type {{ .name | pascalCase }}Client struct {
+	conn *grpc.ClientConn
+}
+
+// New{{ .name | pascalCase }}Client creates a new client connected to the specified address.
+func New{{ .name | pascalCase }}Client(addr string) (*{{ .name | pascalCase }}Client, error) {
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+	return &{{ .name | pascalCase }}Client{conn: conn}, nil
+}
+
+// Close closes the client connection.
+func (c *{{ .name | pascalCase }}Client) Close() error {
+	return c.conn.Close()
+}
+{{ range .entities }}
+// Get{{ .name }} retrieves a {{ .name }} by ID.
+func (c *{{ $.name | pascalCase }}Client) Get{{ .name }}(ctx context.Context, id string) (*{{ .name }}, error) {
+	// TODO: Implement gRPC call
+	return nil, nil
+}
+
+// {{ .name }} represents a {{ .name }} entity.
+type {{ .name }} struct {
+{{- range .fields }}
+	{{ .name | pascalCase }} {{ if eq .type "double" }}float64{{ else }}{{ .type }}{{ end }}
+{{- end }}
+}
+{{ end }}

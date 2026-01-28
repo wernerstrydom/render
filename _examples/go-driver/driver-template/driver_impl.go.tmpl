@@ -1,0 +1,75 @@
+// Package {{ .name }} provides an {{ .description | lower }} for the storage package.
+package {{ .name }}
+
+import (
+	"context"
+	"fmt"
+	"io"
+
+	"storage"
+)
+
+func init() {
+	storage.Register("{{ .name }}", &connector{})
+}
+
+// Config holds the configuration for the {{ .name }} driver.
+type Config struct {
+{{- range .configFields }}
+	{{ .name }} {{ .type }}
+{{- end }}
+}
+
+type connector struct{}
+
+func (c *connector) Open(config any) (storage.Driver, error) {
+	cfg, ok := config.(*Config)
+	if !ok {
+		return nil, fmt.Errorf("{{ .name }}: invalid config type, expected *Config")
+	}
+	return newDriver(cfg)
+}
+
+type driver struct {
+	config *Config
+}
+
+func newDriver(cfg *Config) (*driver, error) {
+	// TODO: Validate configuration and establish connection
+	return &driver{config: cfg}, nil
+}
+
+func (d *driver) Close() error {
+	// TODO: Clean up resources
+	return nil
+}
+
+// Get retrieves an object by key.
+func (d *driver) Get(ctx context.Context, key string) (io.ReadCloser, error) {
+	// TODO: Implement Get
+	return nil, fmt.Errorf("{{ .name }}: Get not implemented")
+}
+
+// Put stores an object with the given key.
+func (d *driver) Put(ctx context.Context, key string, data io.Reader) error {
+	// TODO: Implement Put
+	return fmt.Errorf("{{ .name }}: Put not implemented")
+}
+
+// Delete deletes an object by key.
+func (d *driver) Delete(ctx context.Context, key string) error {
+	// TODO: Implement Delete
+	return fmt.Errorf("{{ .name }}: Delete not implemented")
+}
+
+// List lists objects matching the prefix.
+func (d *driver) List(ctx context.Context, prefix string) ([]string, error) {
+	// TODO: Implement List
+	return nil, fmt.Errorf("{{ .name }}: List not implemented")
+}
+
+// Exists checks if an object exists.
+func (d *driver) Exists(ctx context.Context, key string) (bool, error) {
+	// TODO: Implement Exists
+	return false, fmt.Errorf("{{ .name }}: Exists not implemented")
+}

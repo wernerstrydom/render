@@ -1,0 +1,23 @@
+from fastapi import FastAPI
+{{- range .resources }}
+from app.routers import {{ . | snakeCase }}
+{{- end }}
+
+app = FastAPI(
+    title="{{ .name | title }}",
+    version="{{ .version }}",
+    description="{{ .description }}"
+)
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to {{ .name }}"}
+
+{{- range .resources }}
+
+app.include_router(
+    {{ . | snakeCase }}.router,
+    prefix="/{{ . | snakeCase | replace "_" "-" }}s",
+    tags=["{{ . | pascalCase }}"]
+)
+{{- end }}

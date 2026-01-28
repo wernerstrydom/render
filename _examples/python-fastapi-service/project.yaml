@@ -1,0 +1,6 @@
+name: "inventory-service"
+version: "0.1.0"
+description: "A simple inventory management service"
+resources:
+  - "item"
+  - "user"

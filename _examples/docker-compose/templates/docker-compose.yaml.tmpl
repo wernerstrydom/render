@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+{{- range .services }}
+  {{ .name }}:
+    image: {{ .image }}
+    {{- if .ports }}
+    ports:
+      {{- range .ports }}
+      - "{{ . }}"
+      {{- end }}
+    {{- end }}
+    {{- if .command }}
+    command: {{ .command }}
+    {{- end }}
+    {{- if .env }}
+    environment:
+      {{- range $key, $value := .env }}
+      {{ $key }}: "{{ $value }}"
+      {{- end }}
+    {{- end }}
+    {{- if .volumes }}
+    volumes:
+      {{- range .volumes }}
+      - {{ . }}
+      {{- end }}
+    {{- end }}
+    {{- if .depends_on }}
+    depends_on:
+      {{- range .depends_on }}
+      - {{ . }}
+      {{- end }}
+    {{- end }}
+{{- end }}
+
+networks:
+{{- range .networks }}
+  {{ . }}:
+    driver: bridge
+{{- end }}
+
+volumes:
+{{- range .volumes }}
+  {{ . }}:
+{{- end }}

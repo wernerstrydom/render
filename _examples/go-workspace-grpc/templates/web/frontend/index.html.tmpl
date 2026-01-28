@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .name | pascalCase }} Service</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; line-height: 1.6; }
+        .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4rem 2rem; text-align: center; }
+        .hero h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+        .container { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .feature { padding: 1rem 0; border-bottom: 1px solid #eee; }
+        .feature h3 { color: #333; }
+        .feature p { color: #666; }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>{{ .name | pascalCase }} Service</h1>
+        <p>{{ .description }}</p>
+    </div>
+    <div class="container">
+        <h2>Available Resources</h2>
+        {{ range .entities }}
+        <div class="feature">
+            <h3>{{ .name }}</h3>
+            <p>Manage {{ .name | lower }} resources with full CRUD operations.</p>
+            <ul>
+                {{- range .fields }}
+                <li><strong>{{ .name }}</strong> ({{ .type }})</li>
+                {{- end }}
+            </ul>
+        </div>
+        {{ end }}
+    </div>
+    <script>
+        const API_BASE = 'http://localhost:{{ .httpPort }}/api/{{ .name }}';
+        // TODO: Add interactive functionality
+    </script>
+</body>
+</html>

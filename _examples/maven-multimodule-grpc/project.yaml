@@ -1,0 +1,54 @@
+name: ecommerce-platform
+groupId: com.example.ecommerce
+version: 1.0.0-SNAPSHOT
+javaVersion: 21
+springBootVersion: 3.2.2
+grpcVersion: 1.62.0
+
+services:
+  - name: catalog
+    package: com.example.ecommerce.catalog
+    port: 9090
+    httpPort: 8080
+    description: Product catalog management
+    entities:
+      - name: Product
+        fields:
+          - name: id
+            type: String
+          - name: name
+            type: String
+          - name: price
+            type: BigDecimal
+          - name: category
+            type: String
+
+  - name: inventory
+    package: com.example.ecommerce.inventory
+    port: 9091
+    httpPort: 8081
+    description: Inventory and stock management
+    entities:
+      - name: Stock
+        fields:
+          - name: productId
+            type: String
+          - name: quantity
+            type: Integer
+          - name: warehouse
+            type: String
+
+  - name: checkout
+    package: com.example.ecommerce.checkout
+    port: 9092
+    httpPort: 8082
+    description: Shopping cart and checkout processing
+    entities:
+      - name: Cart
+        fields:
+          - name: id
+            type: String
+          - name: customerId
+            type: String
+          - name: items
+            type: List<CartItem>

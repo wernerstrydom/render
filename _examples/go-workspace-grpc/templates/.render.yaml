@@ -1,0 +1,2 @@
+paths:
+  "proto/service.proto.tmpl": "proto/{{ .name }}.proto"

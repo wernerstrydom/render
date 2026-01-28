@@ -1,0 +1,77 @@
+// Package {{ .package }} provides a unified interface for cloud storage operations.
+// {{ .description }}
+//
+// Usage:
+//
+//	import (
+//		"{{ .package }}"
+//		_ "{{ .package }}/drivers/s3"  // Register S3 driver
+//	)
+//
+//	func main() {
+//		client, err := {{ .package }}.Open("s3", config)
+//		if err != nil {
+//			log.Fatal(err)
+//		}
+//		defer client.Close()
+//
+//		data, err := client.Get(ctx, "my-key")
+//		// ...
+//	}
+package {{ .package }}
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"sync"
+)
+
+// Client provides a unified interface for storage operations.
+type Client struct {
+	driver Driver
+}
+
+// Open creates a new Client using the named driver.
+// The driver must have been registered via Register.
+func Open(driverName string, config any) (*Client, error) {
+	driversMu.RLock()
+	driver, ok := drivers[driverName]
+	driversMu.RUnlock()
+
+	if !ok {
+		return nil, fmt.Errorf("{{ .package }}: unknown driver %q (forgotten import?)", driverName)
+	}
+
+	d, err := driver.Open(config)
+	if err != nil {
+		return nil, fmt.Errorf("{{ .package }}: failed to open driver %q: %w", driverName, err)
+	}
+
+	return &Client{driver: d}, nil
+}
+
+// Close closes the client and releases any resources.
+func (c *Client) Close() error {
+	if closer, ok := c.driver.(io.Closer); ok {
+		return closer.Close()
+	}
+	return nil
+}
+{{ range .methods }}
+// {{ .name }} {{ .description | lower }}.
+func (c *Client) {{ .name }}({{ range $i, $arg := .args }}{{ if $i }}, {{ end }}{{ $arg.name }} {{ $arg.type }}{{ end }}) ({{ range $i, $ret := .returns }}{{ if $i }}, {{ end }}{{ $ret.type }}{{ end }}) {
+	return c.driver.{{ .name }}({{ range $i, $arg := .args }}{{ if $i }}, {{ end }}{{ $arg.name }}{{ end }})
+}
+{{ end }}
+// Drivers returns a list of registered driver names.
+func Drivers() []string {
+	driversMu.RLock()
+	defer driversMu.RUnlock()
+
+	names := make([]string, 0, len(drivers))
+	for name := range drivers {
+		names = append(names, name)
+	}
+	return names
+}

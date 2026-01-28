@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .service.name }}
+  namespace: {{ .namespace }}-{{ .env.name }}
+  labels:
+    app: {{ .service.name }}
+    environment: {{ .env.name }}
+spec:
+  replicas: {{ .env.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .service.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .service.name }}
+        environment: {{ .env.name }}
+    spec:
+      containers:
+        - name: {{ .service.name }}
+          image: {{ .service.image }}:latest
+          ports:
+            - containerPort: {{ .service.port }}
+          resources:
+            requests:
+              cpu: {{ .env.resources.cpu }}
+              memory: {{ .env.resources.memory }}
+            limits:
+              cpu: {{ .env.limits.cpu }}
+              memory: {{ .env.limits.memory }}
+          livenessProbe:
+            httpGet:
+              path: {{ .service.healthPath }}
+              port: {{ .service.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: {{ .service.healthPath }}
+              port: {{ .service.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          envFrom:
+            - configMapRef:
+                name: {{ .service.name }}-config

@@ -1,0 +1,59 @@
+- name: get
+  short: Get resources
+  long: Retrieve and display one or more resources from the server
+  flags:
+    - name: all
+      short: a
+      type: bool
+      default: false
+      description: Show all resources including hidden ones
+    - name: namespace
+      short: n
+      type: string
+      default: default
+      description: Namespace to query
+  subcommands:
+    - name: pods
+      short: List all pods
+    - name: services
+      short: List all services
+    - name: deployments
+      short: List all deployments
+
+- name: create
+  short: Create a resource
+  long: Create a new resource from a file or inline specification
+  flags:
+    - name: file
+      short: f
+      type: string
+      required: true
+      description: Path to resource definition file
+    - name: dry-run
+      type: bool
+      default: false
+      description: Preview without creating
+
+- name: delete
+  short: Delete resources
+  long: Delete one or more resources by name or selector
+  flags:
+    - name: force
+      type: bool
+      default: false
+      description: Force deletion without confirmation
+    - name: selector
+      short: l
+      type: string
+      description: Label selector to filter resources
+
+- name: describe
+  short: Describe a resource
+  long: Show detailed information about a specific resource
+  args:
+    - name: resource
+      required: true
+      description: Resource type (pod, service, deployment)
+    - name: name
+      required: true
+      description: Resource name

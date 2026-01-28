@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .name | pascalCase }} Service - Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        header { background: #1a1a2e; color: white; padding: 1rem 2rem; }
+        h1 { font-size: 1.5rem; }
+        .card { background: white; border-radius: 8px; padding: 1.5rem; margin: 1rem 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #eee; }
+        th { font-weight: 600; color: #666; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #4361ee; color: white; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>{{ .name | pascalCase }} Service Administration</h1>
+    </header>
+    <div class="container">
+        <p>{{ .description }}</p>
+        {{ range .entities }}
+        <div class="card">
+            <h2>{{ .name }} Management</h2>
+            <table>
+                <thead>
+                    <tr>
+                        {{- range .fields }}
+                        <th>{{ .name | title }}</th>
+                        {{- end }}
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="{{ .name | lower }}-table">
+                    <!-- Data loaded via JavaScript -->
+                </tbody>
+            </table>
+            <button class="btn btn-primary" onclick="create{{ .name }}()">Add {{ .name }}</button>
+        </div>
+        {{ end }}
+    </div>
+    <script>
+        const API_BASE = 'http://localhost:{{ $.httpPort }}/api/{{ $.name }}';
+        {{ range .entities }}
+        async function load{{ .name }}s() {
+            const resp = await fetch(`${API_BASE}/{{ .name | lower }}s`);
+            const data = await resp.json();
+            // TODO: Render data to table
+        }
+
+        async function create{{ .name }}() {
+            // TODO: Show modal, collect data, POST to API
+        }
+
+        load{{ .name }}s();
+        {{ end }}
+    </script>
+</body>
+</html>

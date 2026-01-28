@@ -1,0 +1,61 @@
+namespace: myapp
+project: example-project
+
+services:
+  - name: api
+    image: ghcr.io/example/api
+    port: 8080
+    healthPath: /health
+    env:
+      - name: LOG_LEVEL
+        dev: debug
+        staging: info
+        prod: warn
+
+  - name: worker
+    image: ghcr.io/example/worker
+    port: 9090
+    healthPath: /ready
+    env:
+      - name: QUEUE_URL
+        dev: redis://redis:6379
+        staging: redis://redis.staging:6379
+        prod: redis://redis.prod:6379
+
+  - name: frontend
+    image: ghcr.io/example/frontend
+    port: 3000
+    healthPath: /
+    env:
+      - name: API_URL
+        dev: http://api:8080
+        staging: https://api.staging.example.com
+        prod: https://api.example.com
+
+environments:
+  - name: dev
+    replicas: 1
+    resources:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  - name: staging
+    replicas: 2
+    resources:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  - name: prod
+    replicas: 3
+    resources:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi

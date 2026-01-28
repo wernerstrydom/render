@@ -1,0 +1,25 @@
+stack_name: "my-microservices"
+services:
+  - name: "web"
+    image: "nginx:latest"
+    ports:
+      - "80:80"
+    env:
+      NODE_ENV: "production"
+    depends_on:
+      - "redis"
+  - name: "worker"
+    image: "python:3.9-slim"
+    command: "python worker.py"
+    env:
+      REDIS_HOST: "redis"
+  - name: "redis"
+    image: "redis:alpine"
+    volumes:
+      - "redis-data:/data"
+
+networks:
+  - "app-network"
+
+volumes:
+  - "redis-data"

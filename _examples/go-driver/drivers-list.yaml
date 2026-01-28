@@ -1,0 +1,45 @@
+- name: s3
+  description: Amazon S3 driver
+  configFields:
+    - name: Region
+      type: string
+    - name: Bucket
+      type: string
+    - name: AccessKeyID
+      type: string
+    - name: SecretAccessKey
+      type: string
+
+- name: gcs
+  description: Google Cloud Storage driver
+  configFields:
+    - name: Project
+      type: string
+    - name: Bucket
+      type: string
+    - name: CredentialsFile
+      type: string
+
+- name: azure
+  description: Azure Blob Storage driver
+  configFields:
+    - name: AccountName
+      type: string
+    - name: AccountKey
+      type: string
+    - name: Container
+      type: string
+
+- name: filesystem
+  description: Local filesystem driver
+  configFields:
+    - name: BasePath
+      type: string
+    - name: CreateDirs
+      type: bool
+
+- name: memory
+  description: In-memory driver for testing
+  configFields:
+    - name: MaxSize
+      type: int64

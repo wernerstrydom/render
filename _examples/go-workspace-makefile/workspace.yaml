@@ -1,0 +1,41 @@
+name: myproject
+goVersion: "1.22"
+defaultBranch: main
+
+modules:
+  - name: api
+    path: services/api
+    type: service
+    binary: api-server
+    port: 8080
+    hasDocker: true
+
+  - name: worker
+    path: services/worker
+    type: service
+    binary: worker
+    hasDocker: true
+
+  - name: cli
+    path: cmd/cli
+    type: cli
+    binary: myctl
+
+  - name: shared
+    path: pkg/shared
+    type: library
+
+  - name: proto
+    path: pkg/proto
+    type: proto
+
+# Build settings
+ldflags: "-s -w"
+buildTags: ""
+
+# Docker settings
+dockerRegistry: ghcr.io/myorg
+dockerBaseImage: gcr.io/distroless/static:nonroot
+
+# Linting
+golangciVersion: v1.56.0

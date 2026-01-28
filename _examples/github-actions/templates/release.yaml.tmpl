@@ -1,0 +1,77 @@
+{{ if .features.releaseAutomation -}}
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+{{ if eq .language "go" }}
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "{{ .goVersion }}"
+          cache: true
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ "{{" }} secrets.GITHUB_TOKEN {{ "}}" }}
+{{ end }}
+{{ if .docker.enabled }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: {{ .docker.registry }}
+          username: ${{ "{{" }} github.actor {{ "}}" }}
+          password: ${{ "{{" }} secrets.GITHUB_TOKEN {{ "}}" }}
+
+      - name: Extract version
+        id: version
+        run: echo "version=${{ "{{" }} github.ref_name {{ "}}" }}" >> $GITHUB_OUTPUT
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: {{ .docker.dockerfile }}
+          platforms: {{ .docker.platforms | join "," }}
+          push: true
+          tags: |
+            {{ .docker.registry }}/{{ .docker.imageName }}:${{ "{{" }} steps.version.outputs.version {{ "}}" }}
+            {{ .docker.registry }}/{{ .docker.imageName }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+{{ end }}
+{{ if .notifications.slack.enabled }}
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1
+        with:
+          channel-id: "{{ .notifications.slack.channel }}"
+          slack-message: "🚀 Released {{ .name }} ${{ "{{" }} github.ref_name {{ "}}" }}"
+        env:
+          SLACK_BOT_TOKEN: ${{ "{{" }} secrets.SLACK_BOT_TOKEN {{ "}}" }}
+{{ end }}
+{{- end }}
