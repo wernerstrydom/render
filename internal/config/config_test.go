@@ -97,7 +97,13 @@ func TestParse_InvalidTemplateSyntax(t *testing.T) {
 }
 
 func TestValidateSourcePath_AbsolutePath(t *testing.T) {
-	err := validateSourcePath("/absolute/path")
+	// Use filepath.Abs to get a cross-platform absolute path
+	absPath, err := filepath.Abs("somepath")
+	if err != nil {
+		t.Fatalf("Failed to get absolute path: %v", err)
+	}
+
+	err = validateSourcePath(absPath)
 	if err == nil {
 		t.Fatal("Expected error for absolute path")
 	}
